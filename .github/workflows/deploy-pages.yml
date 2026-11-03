@@ -30,9 +30,34 @@ jobs:
           cp index.html styles.css sw.js manifest.webmanifest public-site/
           cp src/*.mjs public-site/src/
           cp assets/icon.svg public-site/assets/
+          printf '{"commit":"%s","version":"0.1"}\n' "$GITHUB_SHA" > public-site/build.json
+          touch public-site/.nojekyll
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
           path: public-site
       - id: deployment
         uses: actions/deploy-pages@v4
+      - name: Varmista julkaistu versio ja PWA-tiedostot
+        env:
+          PAGE_URL: ${{ steps.deployment.outputs.page_url }}
+          EXPECTED_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          base="${PAGE_URL%/}"
+          echo "Tarkistetaan Pages-julkaisua: $base"
+          for attempt in $(seq 1 18); do
+            if curl --max-time 15 -fsSL "$base/build.json" -o /tmp/lentisdata-build.json \
+              && grep -Fq "$EXPECTED_SHA" /tmp/lentisdata-build.json; then
+              for file in index.html src/app.mjs src/domain.mjs src/storage.mjs src/sync.mjs styles.css sw.js manifest.webmanifest assets/icon.svg; do
+                echo "Tarkistetaan $file"
+                curl --max-time 15 -fsSL "$base/$file" -o /dev/null
+              done
+              echo "LentisData 0.1: GitHub Pages on julkaissut commitin $EXPECTED_SHA."
+              exit 0
+            fi
+            echo "Julkaisu ei ole vielä nähtävissä (yritys $attempt/18)."
+            sleep 10
+          done
+          echo "::error::Pages ei palauttanut odotettua versiota. Tarkista Settings → Pages ja Actions-lokit."
+          exit 1
