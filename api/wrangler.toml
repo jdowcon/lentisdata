@@ -1,0 +1,16 @@
+name = "lentisdata-api"
+main = "worker.mjs"
+compatibility_date = "2026-10-01"
+
+[vars]
+CORS_ORIGIN = "https://jdowcon.github.io"
+GITHUB_OWNER = "jdowcon"
+GITHUB_REPO = "lentisdata"
+
+[[durable_objects.bindings]]
+name = "HUB"
+class_name = "Hub"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["Hub"]
