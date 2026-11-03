@@ -4,6 +4,19 @@ Projektin lähdekoodi on julkisessa repositoriossa [jdowcon/lentisdata](https://
 
 **Tilanne 3.11.2026:** GitHub Pages -aktivointi on käyttäjän mukaan tehty. GitHub Actions -julkaisun onnistumista ja oikean puhelimen testiä ei ole vielä todennettu. Cloudflare-tili on olemassa, mutta Workerin julkaisu ja GitHub Appin oikeudet ovat vielä käyttöönottovaiheessa.
 
+## Cloudflare-yhteyden tämänhetkinen tila (3.11.2026)
+
+Cloudflare-pluginin avulla on luotu ja julkaistu Worker **lentisdata-api** käyttäjän Cloudflare-tilille.
+
+- Worker: https://lentisdata-api.jdowcon-lentisdata.workers.dev/
+- Health: https://lentisdata-api.jdowcon-lentisdata.workers.dev/health
+- Cloudflare workers.dev -aliverkkotunnus: `jdowcon-lentisdata`
+- `HUB` SQLite Durable Object -sidonta ja v1-migraatio ovat mukana julkaistussa konfiguraatiossa
+- Worker-salaisuuksia ei ole vielä asetettu, joten `/health`-vastauksen pitäisi sisältää `ready:false`
+- Sovelluksen API-osoite on nyt valmiiksi määritetty lähdekoodissa; vanhojen selaintietojen tyhjä osoite täydennetään avattaessa.
+
+**Älä luo toista Workeria.** Pilven infrastruktuuri on luotu Cloudflare-yhteydellä; GitHub Actions -automaatioon tarvittavat `CLOUDFLARE_ACCOUNT_ID` ja `CLOUDFLARE_API_TOKEN` ovat valinnaiset tähänastisen manuaalisen plugin-julkaisun kannalta mutta tarvitaan jatkossa Actions-pohjaiseen ylläpitoon. Seuraava vaatimus on luoda repositorioon rajattu oma GitHub App ja asettaa neljä Workerin salaisuutta turvallisesti.
+
 ## 1. GitHub Pages -tarkistus
 
 Avaa [Pages-julkaisutyönkulku](https://github.com/jdowcon/lentisdata/actions/workflows/deploy-pages.yml) ja varmista, että viimeisin ajo on onnistunut. Työnkulku tarkistaa myös julkaistun commitin ja PWA-tiedostot. Jos vihreää ajoa ei näy, käynnistä **Run workflow** ja katso mahdolliset virheet lokista. Testaa https://jdowcon.github.io/lentisdata/ puhelimella.
