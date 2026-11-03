@@ -30,7 +30,7 @@ export default {
     const isAdmin=url.pathname.startsWith('/admin/');
     if(!isAdmin && !url.pathname.startsWith('/api/') && url.pathname!=='/health')return fail('Tuntematon osoite.',404);
     if(origin&&!allowed.has(origin))return fail('Origin ei ole sallittu.',403);
-    if(url.pathname==='/health')return json({ok:true,service:'LentisData API',version:'0.1'});
+    if(url.pathname==='/health'){const healthy=Boolean(env.HUB&&env.ADMIN_TOKEN&&env.GITHUB_APP_ID&&env.GITHUB_INSTALLATION_ID&&env.GITHUB_APP_PRIVATE_KEY);return new Response(JSON.stringify({ok:true,ready:healthy,service:'LentisData API',version:'0.1'}),{status:200,headers:{'content-type':'application/json; charset=utf-8','cache-control':'no-store',...cors}});}
     try {
       const stub=env.HUB.get(env.HUB.idFromName('lentisdata-0.1-global'));
       const response=await stub.fetch(request);
@@ -163,7 +163,8 @@ export class Hub {
           if(!dependencies)continue;
         }
         if(job.kind==='set'&&job.idx===1){
-          await this.writeGitHub(`matches/${job.match_id}/metadata.json`,JSON.stringify(payload.match,null,2)+'\n');
+          const {status,revision,...metadata}=payload.match;
+          await this.writeGitHub(`matches/${job.match_id}/metadata.json`,JSON.stringify(metadata,null,2)+'\n');
         }
         const path=job.kind==='set'?`matches/${job.match_id}/set-${job.idx}.json`:`matches/${job.match_id}/summary.json`;
         await this.writeGitHub(path,JSON.stringify(payload,null,2)+'\n');
