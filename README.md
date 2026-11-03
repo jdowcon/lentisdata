@@ -127,18 +127,18 @@ GitHub Pages -julkaisutyönkulku ajaa testit ennen julkaisua ja tarkistaa sen j�
 
 **GitHub App:** Omistaja on ilmoittanut luoneensa ja asentaneensa LentisDatan GitHub Appin. Sen tarkkaa asennusta ja oikeuksia ei ole vahvistettu tämän yhteyden avulla.
 
-### Tietoturvatoimi ennen tuotantokäyttöä
+### Cloudflare-salaisuuksien tarkistus
 
-**Tarkistuksessa 3.11.2026** Cloudflaren Worker-asetuksissa esiintyivät seuraavat neljä muuttujaa tyypillä `plain_text`, vaikka niiden tulee olla salaisina säilytettäviä arvoja tai vähintään tarkoituksenmukaisesti suojattuja määrityksiä:
+**Tarkistus 3.11.2026: korjattu.** Cloudflare-yhteydellä varmistettiin, että seuraavat neljä `lentisdata-api`-Workerin muuttujaa ovat nyt kaikki tyypiltään `secret_text`:
 
 - `ADMIN_TOKEN`
 - `GITHUB_APP_PRIVATE_KEY`
 - `GITHUB_APP_ID`
 - `GITHUB_INSTALLATION_ID`
 
-Cloudflaren varsinaisten Worker Secrets -tietojen luettelo oli tarkistuksessa tyhjä. **Ennen käyttöä vaihda `ADMIN_TOKEN` ja GitHub Appin yksityinen avain uusiin arvoihin ja tallenna ne Secret-tyyppisinä Cloudflaren hallintanäkymässä.** Tarkista, että myös muut kaksi tunnistetta on määritetty tarkoituksenmukaisesti ja etteivät salaisuudet jää enää `plain_text`-sidonnoiksi. App ID ja Installation ID ovat tunnisteita, eivät yksityisiä avaimia, mutta niiden määrittely voidaan yhdenmukaistaa.
+Myös `HUB`-sidonta on edelleen käytössä. Alun perin muuttujat näkyivät `plain_text`-tyyppisinä, mutta tämä määritysongelma on nyt korjattu. Salaisuuksien sisältöä ei tarkistuksessa luettu.
 
-Avaa [Cloudflare Dashboard](https://dash.cloudflare.com/) → **Workers & Pages → lentisdata-api → Settings → Variables and Secrets**. Älä koskaan tallenna avainten sisältöä GitHubin lähdekoodiin, julkiseen issueen, Actions-lokeihin tai keskusteluun. **Pelkkä `/health`-vastauksen `ready: true` ei todista turvallisia salaisuustyyppejä eikä GitHub-kirjoituksen onnistumista.**
+**Vielä varmistettavaa:** turvallinen sidontatyyppi ei yksin todista tunnusten oikeellisuutta eikä GitHub-kirjoitusoikeutta. Jos ylläpitäjän avain tai GitHub Appin yksityinen avain on aiemmin voinut paljastua asiattomille, avaimet täytyy kierrättää; niiden vaihtamista ei ole vahvistettu. Älä julkaise tunnuksia koodissa, issueissa tai lokeissa.
 
 ### Synkronoinnin hyväksyminen
 
