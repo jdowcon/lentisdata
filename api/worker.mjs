@@ -125,9 +125,12 @@ export class Hub {
     let owner=this.sql.exec('SELECT device_id FROM owners WHERE match_id=?',matchId).toArray()[0];
     if(owner&&owner.device_id!==deviceId)return fail('Ottelulla on toinen aktiivinen tilastoija.',409);
     if(!owner)this.sql.exec('INSERT INTO owners(match_id,device_id) VALUES(?,?)',matchId,deviceId);
-    const existing=this.sql.exec('SELECT revision,status FROM jobs WHERE key=?',key).toArray()[0];
+    const existing=this.sql.exec('SELECT revision,status,payload FROM jobs WHERE key=?',key).toArray()[0];
     if(existing&&revision<existing.revision)return fail('Palvelimella on uudempi eräversio.',409);
-    if(existing&&revision===existing.revision)return json({accepted:true,status:existing.status});
+    if(existing&&revision===existing.revision){
+      if(existing.payload!==JSON.stringify(payload))return fail('Sama versionumero sisältää eri tiedot. Päivitä ja tarkista ottelu.',409);
+      return json({accepted:true,status:existing.status});
+    }
     this.sql.exec(`INSERT INTO jobs(key,match_id,kind,idx,revision,payload,status,error,updated) VALUES(?,?,?,?,?,?,'received','',?) ON CONFLICT(key) DO UPDATE SET revision=excluded.revision,payload=excluded.payload,status='received',error='',updated=excluded.updated`,key,matchId,kind,index??null,revision,JSON.stringify(payload),now());
     await this.ctx.storage.setAlarm(now()+1000);
     return json({accepted:true,status:'received'});
