@@ -56,3 +56,9 @@ Katselmoitu määrittely: [docs/SUUNNITELMA-0.1.md](docs/SUUNNITELMA-0.1.md).
 ## Version 0.1 rajoitukset
 
 Tämä on ensimmäinen testattava versio. Cloudflare- ja GitHub App -tunnuksia ei luoda automaattisesti. Laitekohtainen kutsukoodilla tehtävä aktivointi ja GitHub-synkronointi toimivat vasta Workerin ja GitHub Appin käyttöönoton jälkeen. Päättynyttä erää ei voi jatkaa pelitapahtumien lisäämisellä; sitä voi korjata historia- ja pistekorjaustoiminnoilla. Samassa ottelussa sallitaan vain yksi kirjoittava laite, kun pilvisynkronointi on käytössä.
+
+
+## Käyttöönoton seuranta
+
+Julkaisun ja synkronoinnin asennusohjeet: [docs/KAYTTOONOTTO.md](docs/KAYTTOONOTTO.md).
+GitHub-tehtävät: [#1 Pages](https://github.com/jdowcon/lentisdata/issues/1), [#2 pilvisynkronointi](https://github.com/jdowcon/lentisdata/issues/2) ja [#3 mobiilitestaus](https://github.com/jdowcon/lentisdata/issues/3).
