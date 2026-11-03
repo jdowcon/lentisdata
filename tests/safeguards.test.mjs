@@ -1,0 +1,14 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {createMatch,addEvent,closeSet,completeMatch} from '../src/domain.mjs';
+import {queueSnapshot,syncStatus} from '../src/sync.mjs';
+import {initialState,backupExport,validateBackup} from '../src/storage.mjs';
+import worker from '../api/worker.mjs';
+const fields={statistician:'Tilastoija Testi',date:'2026-11-03',tournament:'Testi',home:'Oma',away:'Vieras',own:'Oma',setsPlanned:2};
+let counter=0;const makeId=()=>`00000000-0000-4000-8000-${String(++counter).padStart(12,'0')}`;
+test('kahden erän ottelu voi päättyä 1–1 ilman kolmatta erää',()=>{const m=createMatch(fields,makeId);closeSet(m,m.sets[0].id,25,20);closeSet(m,m.sets[1].id,20,25);completeMatch(m);assert.equal(m.sets.length,2);assert.equal(m.status,'completed');});
+test('päiväys ei hyväksy olematonta päivää',()=>assert.throws(()=>createMatch({...fields,date:'2026-02-31'},makeId)));
+test('valmiin erän jono ei julkaise tilastoijan nimeä',()=>{const s=initialState(),m=createMatch(fields,makeId);addEvent(m,m.sets[0].id,'S4',makeId);closeSet(m,m.sets[0].id,25,20);queueSnapshot(s,m,'set',m.sets[0]);assert.equal(s.syncJobs[0].status,'queued');assert.equal(s.syncJobs[0].payload.match.statistician,undefined);assert.equal(syncStatus(s,m.id),'queued');});
+test('uusi eräversio päivittää jonotehtävän eikä tuota kopiota',()=>{const s=initialState(),m=createMatch(fields,makeId);closeSet(m,m.sets[0].id,25,20);queueSnapshot(s,m,'set',m.sets[0]);m.sets[0].revision+=1;m.sets[0].ownScore=26;m.sets[0].opponentScore=24;queueSnapshot(s,m,'set',m.sets[0]);assert.equal(s.syncJobs.length,1);assert.equal(s.syncJobs[0].revision,2);});
+test('JSON-varmuuskopio ei sisällä salaisia avaimia',()=>{const s=initialState();s.auth.deviceId='device';s.auth.privateKey='secret';const out=JSON.parse(backupExport(s));assert.equal(out.auth.privateKey,null);assert.equal(out.auth.deviceId,null);assert.equal(validateBackup(out),true);});
+test('Workerin health ja tuntematon reitti',async()=>{const ok=await worker.fetch(new Request('https://api.test/health'),{});assert.equal(ok.status,200);assert.equal((await ok.json()).version,'0.1');const no=await worker.fetch(new Request('https://api.test/unknown'),{});assert.equal(no.status,404);});
