@@ -8,7 +8,7 @@
 - **Suunnitelma 0.1:** [docs/SUUNNITELMA-0.1.md](docs/SUUNNITELMA-0.1.md)
 - **Käyttöönotto:** [docs/KAYTTOONOTTO.md](docs/KAYTTOONOTTO.md)
 
-> **Tila 3.11.2026:** Sovelluksen lähdekoodi ja GitHub Pages -julkaisutyönkulku ovat `main`-haarassa. Omistaja on ilmoittanut aktivoineensa GitHub Pagesin, mutta tuotantosivun toimivuutta ei ole vielä vahvistettu päästä päähän. Cloudflareen on julkaistu `lentisdata-api`, jonka `HUB`-Durable Object -sidonta näkyy tiliasetuksissa. GitHub-tallennuksen onnistunutta testiä ja mobiilin hyväksymistestiä ei ole vielä vahvistettu. **Älä käytä järjestelmää ainoana ottelutietojen tallennuspaikkana ennen hyväksymistestejä.**
+> **Testitilanne 4.11.2026:** Käyttäjä ilmoitti onnistuneesta terveystarkistuksesta, testilaitteen aktivoinnista ja yhden ottelun synkronoinnista. GitHub-tarkistuksessa ottelutiedostoja ei löytynyt. Offline-synkronointi ja mobiilitestaus ovat avoinna. Katso [synkronoinnin hyväksyminen](#synkronoinnin-hyväksyminen).
 
 ## Mitä versio 0.1 sisältää?
 
@@ -45,7 +45,7 @@ Sovellus **ei seuraa jatkopalloja, syöttövuoron vaihtumista eikä erän pistet
 - IndexedDB-tallennus sekä service workerin välimuisti offline-käyttöä varten.
 - Syöttövirheitä ja ässiä raportoidaan, mutta näistä ei muodosteta ottelun pistelaskua.
 
-**Huomaa:** Ennen toimivaa ja vahvistettua GitHub-synkronointia selaimen paikalliset tiedot voivat hävitä esimerkiksi selainprofiilin tai sivustodatan poiston yhteydessä. Ota JSON-varmuuskopio säännöllisesti.
+**Huomaa:** Selainprofiilin tai sivustodatan poisto voi hävittää paikalliset tiedot. Ota JSON-varmuuskopio säännöllisesti.
 
 ## Arkkitehtuuri
 
@@ -95,7 +95,7 @@ data/
     └── summary.json
 ```
 
-`data`-haaraan tulee ottelukohtaisia tiedostoja vasta onnistuneiden synkronointien seurauksena; yllä oleva hakemistorakenne on tavoiterakenne, ei väite jo tallennetuista otteluista.
+Yllä on synkronoinnin tavoiterakenne. GitHubissa tarkistetun `data`-haaran kärjessä oli 4.11.2026 vain `README.md` ja `schema.json`.
 
 ## Käynnistä paikallisesti
 
@@ -142,14 +142,13 @@ Myös `HUB`-sidonta on edelleen käytössä. Alun perin muuttujat näkyivät `pl
 
 ### Synkronoinnin hyväksyminen
 
-Käyttöönotto katsotaan valmiiksi vasta, kun seuraavat on todettu:
+**Käyttäjän ilmoittama 4.11.2026:** API:n `/health` onnistui, testilaite aktivoitiin ja yksi ottelu synkronoitiin `data`-haaraan.
 
-1. Workerin salaisuudet on korjattu ja GitHub Appilla on **Contents: Read and write** -oikeus vain `jdowcon/lentisdata`-repositorioon.
-2. Ylläpitäjä on luonut kertakäyttöisen kutsukoodin, ja testilaite on aktivoitu.
-3. Valmiin erän tiedot ilmestyvät `data`-haaraan, esimerkiksi `matches/<id>/set-1.json`.
-4. Viimeisen erän ja ottelun vahvistuksen jälkeen `summary.json` sisältää oikeat eräversiot.
-5. Offline-tilassa valmistunut erä siirtyy verkon palautuessa GitHubiin ilman päällekkäisiä tallennuksia.
-6. Mobiilikäyttöliittymä ja varmuuskopiointi läpäisevät käytännön testit.
+**GitHubista vahvistettu 4.11.2026:** [data-haaran tarkistettu commit `6860496`](https://github.com/jdowcon/lentisdata/tree/686049624364633b517fa070d6ce5885ff8add29) sisältää vain `README.md`- ja `schema.json`-tiedostot. Niissä ei havaittu tilastoijan henkilötietoja, tokeneita tai avaimia. `matches/` puuttuu, joten ilmoitetun ottelun tallennus ja ottelutiedostojen tietosuoja ovat vielä vahvistamatta.
+
+- [ ] **Ottelutiedostot ja tietosuoja.** Etsi ilmoitetun ottelun GitHub-commit tai `matches/<id>/`-polku. Tarkista `metadata.json`, jokaisen pelatun erän `set-N.json` ja `summary.json`. Vertaa tuloksia ja yhteenvedon eräversioita sovelluksen tietoihin. Tarkista myös tiedostopolut, kentät ja vapaat tekstiarvot tilastoijan henkilötietojen, kutsukoodien, tokenien ja avainten varalta.
+- [ ] **Offline-synkronointi.** Avaa sovellus verkossa aktivoidulla puhelimella ja katkaise yhteys. Kirjaa ja vahvista erä, aloita seuraava erä ja sulje sekä avaa sovellus edelleen offline-tilassa. Varmista, että kirjaukset ja lähetysjono säilyvät. Päätä kolmieräinen harjoitusottelu offline-tilassa, palauta yhteys ja varmista jonon tyhjeneminen. Tarkista GitHubista kaikki kolme erätiedostoa ja oikeat eräversiot yhteenvedossa. Katkaise ja palauta yhteys lähetyksen aikana ja varmista, että uudelleenyritys tuottaa yhden loogisen tallennuksen erää ja otteluyhteenvetoa kohti.
+- [ ] **Mobiili ja varmuuskopio.** Testaa oikealla puhelimella sekä 320×568-, 360×640- ja 390×844-näkymissä. Kaikkien kahdeksan tilastointipainikkeen tulee näkyä yhtä aikaa ilman vaakavieritystä. Kokeile kaikkia painikkeita, perumista ja historiakorjausta. Varmista tietojen säilyminen sovelluksen sulkemisen jälkeen sekä JSON-varmuuskopion vienti ja palautus erillisessä selainprofiilissa. Seuranta [issuessa #3](https://github.com/jdowcon/lentisdata/issues/3).
 
 Tarkemmat ohjeet: [docs/KAYTTOONOTTO.md](docs/KAYTTOONOTTO.md). GitHub Actionsissa `CLOUDFLARE_ACCOUNT_ID` ja `CLOUDFLARE_API_TOKEN` tarvitaan **automaattiseen API-julkaisuun**, ei jo julkaistun Workerin käyttämiseen.
 
